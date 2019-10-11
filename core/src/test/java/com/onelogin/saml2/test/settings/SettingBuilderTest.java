@@ -78,13 +78,14 @@ public class SettingBuilderTest {
      * @throws IOException
      */
     private KeyStoreSettings getKeyStoreSettings() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
-        String password = "changeit";
+        String keyStorePass = "changeit";
+        String privateKeyPass = "keypassword";
         String keyStoreFile = "src/test/resources/keystore/oneloginTestKeystore.jks";
-        String alias = "onelogintest";
+        String alias = "keywithpassword";
 
         KeyStore ks = KeyStore.getInstance("JKS");
-        ks.load(new FileInputStream(keyStoreFile), password.toCharArray());
-        return new KeyStoreSettings(ks, alias, password);
+        ks.load(new FileInputStream(keyStoreFile), keyStorePass.toCharArray());
+        return new KeyStoreSettings(ks, alias, keyStorePass, privateKeyPass);
     }
 
 	/**
@@ -105,8 +106,8 @@ public class SettingBuilderTest {
 	public void testLoadFromFileAndKeyStore() throws IOException, CertificateException, URISyntaxException, SettingsException, Error, KeyStoreException, NoSuchAlgorithmException {
 		Saml2Settings setting = new SettingsBuilder().fromFile("config/config.empty.properties", getKeyStoreSettings()).build();
 		
-		assertNotNull(setting.getSPcert() instanceof X509Certificate);
-		assertNotNull(setting.getSPkey() instanceof Key);
+		assertTrue(setting.getSPcert() instanceof X509Certificate);
+		assertTrue(setting.getSPkey() instanceof Key);
 	}
 	
 

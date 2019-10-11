@@ -95,13 +95,14 @@ public class AuthTest {
 	 * @throws IOException
 	 */
 	private KeyStoreSettings getKeyStoreSettings() throws KeyStoreException, NoSuchAlgorithmException, CertificateException, FileNotFoundException, IOException {
-		String password = "changeit";
+		String keyStorePass = "changeit";
+		String privateKeyPass = "keypassword";
 		String keyStoreFile = "src/test/resources/keystore/oneloginTestKeystore.jks";
-		String alias = "onelogintest";
+		String alias = "keywithpassword";
 
 		KeyStore ks = KeyStore.getInstance("JKS");
-		ks.load(new FileInputStream(keyStoreFile), password.toCharArray());
-		return new KeyStoreSettings(ks, alias, password);
+		ks.load(new FileInputStream(keyStoreFile), keyStorePass.toCharArray());
+		return new KeyStoreSettings(ks, alias, keyStorePass, privateKeyPass);
 	}
 
 	/**

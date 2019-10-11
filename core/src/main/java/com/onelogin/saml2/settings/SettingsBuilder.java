@@ -68,9 +68,7 @@ public class SettingsBuilder {
 	public final static String SP_X509CERTNEW_PROPERTY_KEY = "onelogin.saml2.sp.x509certNew";
 
 	// KeyStore
-	public final static String KEYSTORE_KEY = "onelogin.saml2.keystore.store";
-	public final static String KEYSTORE_ALIAS = "onelogin.saml2.keystore.alias";
-	public final static String KEYSTORE_PASSWORD = "onelogin.saml2.keystore.password";
+	public final static String KEYSTORE_SETTINGS = "onelogin.saml2.keystore.settings";
 
 	// IDP
 	public final static String IDP_ENTITYID_PROPERTY_KEY = "onelogin.saml2.idp.entityid";
@@ -470,19 +468,14 @@ public class SettingsBuilder {
 		if (spNameIDFormat != null && !spNameIDFormat.isEmpty())
 			saml2Setting.setSpNameIDFormat(spNameIDFormat);
 
-		boolean keyStoreEnabled = this.samlData.get(KEYSTORE_KEY) != null && this.samlData.get(KEYSTORE_ALIAS) != null
-				&& this.samlData.get(KEYSTORE_PASSWORD) != null;
-
 		X509Certificate spX509cert;
 		PrivateKey spPrivateKey;
 
-		if (keyStoreEnabled) {
-			KeyStore ks = (KeyStore) this.samlData.get(KEYSTORE_KEY);
-			String alias = (String) this.samlData.get(KEYSTORE_ALIAS);
-			String password = (String) this.samlData.get(KEYSTORE_PASSWORD);
+		if (this.samlData.get(KEYSTORE_SETTINGS) != null) {
+			KeyStoreSettings keyStoreSettings = (KeyStoreSettings) this.samlData.get(KEYSTORE_SETTINGS);
 
-			spX509cert = getCertificateFromKeyStore(ks, alias, password);
-			spPrivateKey = getPrivateKeyFromKeyStore(ks, alias, password);
+			spX509cert = getCertificateFromKeyStore(keyStoreSettings);
+			spPrivateKey = getPrivateKeyFromKeyStore(keyStoreSettings);
 		} else {
 			spX509cert = loadCertificateFromProp(SP_X509CERT_PROPERTY_KEY);
 			spPrivateKey = loadPrivateKeyFromProp(SP_PRIVATEKEY_PROPERTY_KEY);
@@ -582,9 +575,13 @@ public class SettingsBuilder {
 		return null;
 	}
 
-	protected PrivateKey getPrivateKeyFromKeyStore(KeyStore keyStore, String alias, String password) {
+	protected PrivateKey getPrivateKeyFromKeyStore(KeyStoreSettings ks) {
 		Key key;
 		try {
+			KeyStore keyStore = ks.getKeyStore();
+			String password = ks.getSpKeyPass();
+			String alias = ks.getSpAlias();
+
 			if (keyStore.containsAlias(alias)) {
 				key = keyStore.getKey(alias, password.toCharArray());
 				if (key instanceof PrivateKey) {
@@ -599,8 +596,12 @@ public class SettingsBuilder {
 		return null;
 	}
 
-	protected X509Certificate getCertificateFromKeyStore(KeyStore keyStore, String alias, String password) {
+	protected X509Certificate getCertificateFromKeyStore(KeyStoreSettings ks) {
 		try {
+			KeyStore keyStore = ks.getKeyStore();
+			String password = ks.getSpKeyPass();
+			String alias = ks.getSpAlias();
+
 			if (keyStore.containsAlias(alias)) {
 				Key key = keyStore.getKey(alias, password.toCharArray());
 				if (key instanceof PrivateKey) {
@@ -756,9 +757,7 @@ public class SettingsBuilder {
 	 * @param setting the KeyStoreSettings object to be parsed
 	 */
     private void parseKeyStore(KeyStoreSettings setting) {
-		this.samlData.put(KEYSTORE_KEY, setting.getKeyStore());
-		this.samlData.put(KEYSTORE_ALIAS, setting.getSpAlias());
-		this.samlData.put(KEYSTORE_PASSWORD, setting.getStorePass());
+		this.samlData.put(KEYSTORE_SETTINGS, setting);
     }
 
 	/**
